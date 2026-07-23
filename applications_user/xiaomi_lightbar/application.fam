@@ -1,0 +1,9 @@
+App(
+    appid="xiaomi_lightbar",
+    name="Xiaomi Lightbar",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="xiaomi_lightbar_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    fap_category="GPIO",
+)
