@@ -1,2 +1,66 @@
-# Xiaomi-Lightbar1-Flipper0
-Control xiaomi lightbar 1 (not 1s) with flipper+nrf24 module
+# Xiaomi Lightbar Flipper Zero App
+
+A custom Flipper Zero application (`.fap`) to control the **Xiaomi Mi Computer Monitor Light Bar (Model MJGJD01YL)** using an external **nRF24L01** module. Tested on MNTM-011
+
+![main page](image.png)
+![settings page](image-1.png)
+
+## Features
+
+- **Standard Remote Controls**: Toggles power, adjusts brightness, and modifies color temperature.
+- **Settings Menu**: Enter the configuration interface with a short press of the **Back** key.
+- **Persistent Storage**: Save your configured **Remote ID** and **PA Level** directly to the SD card (`/ext/apps_data/xiaomi_lightbar/config.bin`). Settings are automatically loaded when starting the application.
+- **Digit-by-Digit ID Editing**: Modify your 3-byte Remote ID directly inside the application GUI.
+- **PA Level Selection**: Set nRF24 transmit power level to `MIN`, `LOW`, `HIGH`, or `MAX`.
+- **Frequency Hopping**: Emulates the physical remote by hopping across channels 6, 15, 43, and 68 (15 repetitions per channel) to guarantee reliable communication.
+- **Improved Concurrency**: Executes transmission outside the state mutex lock to ensure the Flipper GUI rendering thread remains smooth.
+
+---
+
+## Pinout Configuration
+
+Connect your nRF24L01 module to the Flipper Zero GPIO pins as follows:
+
+| nRF24 Pin      | Flipper Pin      | Function                     |
+| :------------- | :--------------- | :--------------------------- |
+| **GND**        | Pin 8 (GND)      | Ground                       |
+| **VCC (3.3V)** | Pin 9 (3V3)      | Power                        |
+| **CE**         | Pin 6 (PB2)      | Chip Enable                  |
+| **CSN**        | **Pin 13 (PC3)** | **Manual CSN (Chip Select)** |
+| **SCK**        | Pin 12 (PB3)     | SPI Clock                    |
+| **MOSI**       | Pin 15 (PA7)     | SPI MOSI                     |
+| **MISO**       | Pin 16 (PA6)     | SPI MISO                     |
+
+_Note: A decoupling capacitor (e.g. 4.7µF to 10µF) across VCC and GND on the nRF24 module is highly recommended for signal stability._
+
+---
+
+## How to Use
+
+### 1. Key Bindings
+
+- **OK (Short Press)**: Toggle Power (On / Off).
+- **Up / Down**: Brightness Increase / Decrease.
+- **Left / Right**: Color Temperature Warmer / Cooler.
+- **Back (Short Press)**: Enter / Return from Settings Menu.
+- **Back (Long Press)**: Exit App from any screen.
+
+### 2. Pairing a New Lightbar
+
+1. Unplug and replug the power cable of the Xiaomi lightbar.
+2. Within 20 seconds, open the Settings Menu on the Flipper app and select **Pair Lightbar (Send Reset)**.
+3. The lightbar will flash to indicate successful pairing.
+
+---
+
+## How to Build
+
+The application uses the micro Flipper Build Tool (`ufbt`). To compile, install `ufbt` via Python and run:
+
+```bash
+pip install ufbt
+ufbt
+```
+
+The compiled package will be available at:
+`dist/xiaomi_lightbar.fap`
