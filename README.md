@@ -17,7 +17,8 @@ A custom Flipper Zero application (`.fap`) to control the **Xiaomi Mi Computer M
 | **Firmware** | Momentum `mntm-dev`, API 79.2 |
 | **nRF24** | external nRF24L01+ module, wired as per the [pinout](#pinout-configuration) below |
 | **Light bar** | Xiaomi Mi Computer Monitor Light Bar **MJGJD01YL** (the non-BLE model) |
-| **Confirmed working** | power toggle · brightness up/down · colour temperature warmer/cooler · pairing · remote-ID edit |
+| **Confirmed working** | power toggle · brightness up/down · colour temperature warmer/cooler |
+| **Also verified** | remote-ID editing and persistence (the saved `config.bin` changes byte-for-byte) · settings-menu navigation |
 
 The packet builder is also covered by a host-side unit test (`test/`, 16 checks)
 that reproduces the four packets captured during the original reverse
