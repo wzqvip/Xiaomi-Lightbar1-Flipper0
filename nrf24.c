@@ -164,6 +164,14 @@ void nrf24_set_pa_level(Nrf24PaLevel level) {
     nrf24_write_reg(RF_SETUP, val);
 }
 
+void nrf24_disable_crc(void) {
+    // The light bar has no nRF24 on the other end, so the chip's own CRC is
+    // pure overhead. Both reference implementations turn it off; leaving it on
+    // appends extra bytes after the 17 byte payload.
+    uint8_t val = nrf24_read_reg(CONFIG);
+    nrf24_write_reg(CONFIG, val & ~((1 << EN_CRC) | (1 << CRCO)));
+}
+
 void nrf24_set_auto_ack(bool enable) {
     if (enable) {
         nrf24_write_reg(EN_AA, 0x3F); // Enable on all pipes
@@ -228,20 +236,34 @@ bool nrf24_read(uint8_t* buf, uint8_t len) {
     return true;
 }
 
-void nrf24_write(const uint8_t* buf, uint8_t len) {
+bool nrf24_write(const uint8_t* buf, uint8_t len) {
     nrf24_flush_tx();
-    
+
     furi_hal_spi_acquire(spi);
     nrf24_csn_low();
-    uint8_t status = nrf24_spi_transfer(W_TX_PAYLOAD_NO_ACK); // Or W_TX_PAYLOAD
-    for (uint8_t i = 0; i < len; i++) {
+    nrf24_spi_transfer(W_TX_PAYLOAD_NO_ACK);
+    for(uint8_t i = 0; i < len; i++) {
         nrf24_spi_transfer(buf[i]);
     }
     nrf24_csn_high();
     furi_hal_spi_release(spi);
-    (void)status;
-    
+
+    /*
+     * CE has to stay high for at least 10 us to kick off the transmission.
+     * Rather than sleeping blindly afterwards, poll STATUS: flushing the TX
+     * FIFO while a packet is still in flight would abort it.
+     */
     nrf24_ce_high();
-    furi_delay_us(15);
+    furi_delay_us(20);
     nrf24_ce_low();
+
+    for(uint8_t i = 0; i < 40; i++) {
+        uint8_t status = nrf24_read_reg(STATUS);
+        if(status & ((1 << TX_DS) | (1 << MAX_RT))) {
+            nrf24_write_reg(STATUS, (1 << TX_DS) | (1 << MAX_RT));
+            return (status & (1 << TX_DS)) != 0;
+        }
+        furi_delay_us(20);
+    }
+    return false;
 }

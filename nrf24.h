@@ -139,6 +139,8 @@ void nrf24_set_channel(uint8_t channel);
 void nrf24_set_data_rate(Nrf24DataRate rate);
 void nrf24_set_pa_level(Nrf24PaLevel level);
 
+void nrf24_disable_crc(void);
+
 void nrf24_set_auto_ack(bool enable);
 void nrf24_set_dynamic_payloads(bool enable);
 void nrf24_set_dynamic_ack(bool enable);
@@ -151,7 +153,8 @@ void nrf24_tx_mode(void);
 bool nrf24_available(void);
 bool nrf24_read(uint8_t* buf, uint8_t len);
 
-void nrf24_write(const uint8_t* buf, uint8_t len);
+/* Returns true when the radio reported the packet as transmitted (TX_DS). */
+bool nrf24_write(const uint8_t* buf, uint8_t len);
 
 #ifdef __cplusplus
 }

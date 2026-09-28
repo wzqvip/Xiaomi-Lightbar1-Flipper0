@@ -53,6 +53,44 @@ _Note: A decoupling capacitor (e.g. 4.7µF to 10µF) across VCC and GND on the n
 
 ---
 
+## Protocol notes
+
+The light bar takes a fixed 17 byte packet over a bare 2.4 GHz link:
+
+| offset  | size | field                                        |
+| :------ | :--- | :------------------------------------------- |
+| 0..7    | 8    | preamble `53 39 14 DD 1C 49 34 12` (fixed)   |
+| 8..10   | 3    | remote id                                    |
+| 11      | 1    | separator `FF`                               |
+| 12      | 1    | counter (increments per command)             |
+| 13..14  | 2    | command                                      |
+| 15..16  | 2    | CRC16 over bytes **0..14**                   |
+
+Two details are easy to get backwards, and in both cases the bar fails
+*silently* -- it just ignores the packet:
+
+- the **counter comes before the command**, not after it;
+- the **CRC covers all 15 preceding bytes, preamble included** (poly `0x1021`,
+  init `0xFFFE`, no reflection, xorout `0`).
+
+The nRF24 sends `preamble + address + payload`; filling the 5 byte address with
+`0x5555555555` extends the bar's sync sequence, so the 17 byte packet rides along
+as the payload. CRC and auto-ack are switched off, data rate is 2 Mbps, and the
+packet is repeated across channels 6, 15, 43 and 68.
+
+Reverse engineered by [lamperez](https://github.com/lamperez/xiaomi-lightbar-nrf24).
+
+## Tests
+
+`test/` builds the packet builder on a PC (no Flipper needed) and checks it
+against the four packets captured during the original reverse engineering:
+
+```sh
+gcc -std=c11 -Wall -Wextra -I. -Itest/stubs \
+    -o test/test_protocol.exe test/test_protocol.c xiaomi_protocol.c
+./test/test_protocol.exe
+```
+
 ## How to Build
 
 The application uses the micro Flipper Build Tool (`ufbt`). To compile, install `ufbt` via Python and run:

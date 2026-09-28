@@ -31,9 +31,10 @@
 void nrf24_set_channel(uint8_t channel) {
     (void)channel;
 }
-void nrf24_write(const uint8_t* buf, uint8_t len) {
+bool nrf24_write(const uint8_t* buf, uint8_t len) {
     (void)buf;
     (void)len;
+    return true;
 }
 
 static int checks = 0;

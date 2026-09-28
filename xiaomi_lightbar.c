@@ -232,16 +232,25 @@ int32_t xiaomi_lightbar_app(void* p) {
     nrf24_set_auto_ack(false);
     nrf24_set_dynamic_payloads(false);
     nrf24_set_dynamic_ack(true);
+    nrf24_disable_crc();
     nrf24_tx_mode();
     
     // Address width setup: 5 bytes
     nrf24_write_reg(SETUP_AW, 0x03); 
     
-    // Tx address setup: 0x5555555555
+    // Tx address setup: 0x5555555555 (0b0101... extends the bar's sync sequence)
     uint8_t addr[] = {0x55, 0x55, 0x55, 0x55, 0x55};
     nrf24_set_tx_address(addr, 5);
 
     state.nrf_connected = nrf24_check_connected();
+
+    FURI_LOG_I(
+        "XiaomiLB",
+        "nrf24 %s CONFIG=%02X RF_SETUP=%02X SETUP_AW=%02X",
+        state.nrf_connected ? "found" : "MISSING",
+        nrf24_read_reg(CONFIG),
+        nrf24_read_reg(RF_SETUP),
+        nrf24_read_reg(SETUP_AW));
 
     FuriMessageQueue* event_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
 

@@ -1,6 +1,7 @@
 #include "xiaomi_protocol.h"
 #include "nrf24.h"
 #include <furi.h>
+#include <stdio.h>
 
 uint16_t xiaomi_crc16(const uint8_t* data, size_t len) {
     uint16_t crc = 0xFFFE;
@@ -57,13 +58,26 @@ void xiaomi_send_command(uint32_t remote_id, uint16_t cmd, uint8_t* counter) {
 
     // Transmit across the 4 primary channels to ensure the receiver gets it
     uint8_t channels[] = {6, 15, 43, 68};
+    uint8_t sent = 0;
     for (int c = 0; c < 4; c++) {
         nrf24_set_channel(channels[c]);
         for (int i = 0; i < 15; i++) {
-            nrf24_write(packet, 17);
-            furi_delay_ms(5);
+            if (nrf24_write(packet, 17)) {
+                sent++;
+            }
+            // Keep the ~5 ms cadence this app was verified with. nrf24_write()
+            // only waits for TX_DS (~150 us), it does not space the packets.
+            furi_delay_ms(4);
         }
     }
+
+    // Handy when debugging over the CLI: `log` shows this after a key press.
+    char hex[17 * 3 + 1];
+    for (size_t i = 0; i < sizeof(packet); i++) {
+        snprintf(hex + i * 3, 4, "%02X ", packet[i]);
+    }
+    FURI_LOG_I("XiaomiLB", "id=%06lX cmd=%04X n=%u %s(%u/60 sent)",
+               (unsigned long)remote_id, cmd, (unsigned)*counter - 1u, hex, sent);
 }
 
 static uint8_t clamp(uint8_t x) {
