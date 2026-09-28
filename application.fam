@@ -5,4 +5,11 @@ App(
     entry_point="xiaomi_lightbar_app",
     stack_size=2 * 1024,
     fap_category="GPIO",
+    # Spelled out so the host-side test harness under test/ is not pulled into
+    # the firmware build (it defines stubs that clash with nrf24.c).
+    sources=[
+        "xiaomi_lightbar.c",
+        "nrf24.c",
+        "xiaomi_protocol.c",
+    ],
 )

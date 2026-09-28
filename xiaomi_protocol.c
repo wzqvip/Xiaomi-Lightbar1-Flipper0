@@ -36,15 +36,16 @@ void xiaomi_build_packet(uint8_t* packet, uint32_t remote_id, uint16_t cmd, uint
     // 1-byte Separator
     packet[11] = 0xFF;
 
-    // 2-byte Command
-    packet[12] = (cmd >> 8) & 0xFF;
-    packet[13] = cmd & 0xFF;
+    // 1-byte Counter, then the 2-byte Command.
+    // The counter comes FIRST -- this is easy to get backwards, and the bar
+    // silently ignores every packet if you do.
+    packet[12] = counter;
+    packet[13] = (cmd >> 8) & 0xFF;
+    packet[14] = cmd & 0xFF;
 
-    // 1-byte Counter
-    packet[14] = counter;
-
-    // Calculate CRC16 on packet[8..14] (7 bytes)
-    uint16_t crc = xiaomi_crc16(&packet[8], 7);
+    // CRC16 covers all 15 preceding bytes, preamble included -- not just the
+    // 7 bytes after the preamble.
+    uint16_t crc = xiaomi_crc16(packet, 15);
     packet[15] = (crc >> 8) & 0xFF;
     packet[16] = crc & 0xFF;
 }
