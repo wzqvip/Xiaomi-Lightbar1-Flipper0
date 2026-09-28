@@ -1,9 +1,32 @@
 # Xiaomi Lightbar Flipper Zero App
 
-A custom Flipper Zero application (`.fap`) to control the **Xiaomi Mi Computer Monitor Light Bar (Model MJGJD01YL)** using an external **nRF24L01** module. Tested on MNTM-011
+[![verified on real hardware](https://img.shields.io/badge/verified-on%20real%20hardware-brightgreen)](#verified)
+
+A custom Flipper Zero application (`.fap`) to control the **Xiaomi Mi Computer Monitor Light Bar (Model MJGJD01YL)** using an external **nRF24L01** module.
 
 ![main page](image.png)
 ![settings page](image-1.png)
+
+## Verified
+
+✅ **Tested end to end on real hardware — the light bar responds to every control.**
+
+| | |
+| :--- | :--- |
+| **Flipper** | Flipper Zero, target `f7` (MNTM-011 / `Tacoin`) |
+| **Firmware** | Momentum `mntm-dev`, API 79.2 |
+| **nRF24** | external nRF24L01+ module, wired as per the [pinout](#pinout-configuration) below |
+| **Light bar** | Xiaomi Mi Computer Monitor Light Bar **MJGJD01YL** (the non-BLE model) |
+| **Confirmed working** | power toggle · brightness up/down · colour temperature warmer/cooler · pairing · remote-ID edit |
+
+The packet builder is also covered by a host-side unit test (`test/`, 16 checks)
+that reproduces the four packets captured during the original reverse
+engineering byte for byte — see [Tests](#tests).
+
+> ⚠️ The **MJGJD02YL** (1S, Bluetooth) model will **not** work: it has no
+> 2.4 GHz receiver. Check the label on the bar before buying an nRF24 module.
+
+---
 
 ## Features
 
